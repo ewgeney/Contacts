@@ -10,12 +10,15 @@ import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
+
+import com.example.contacts.MainActivity;
 import com.example.contacts.data.ContactContract.*;
 
 public class ContactContentProviders extends ContentProvider {
 
-    ContactListDbOpenHelper dbOpenHelper;
-
+    private ContactsDatabase contactsDatabase;
     public static final int CONTACTS = 1;
     public static final int CONTACT_ID = 2;
 
@@ -29,25 +32,27 @@ public class ContactContentProviders extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        dbOpenHelper = new ContactListDbOpenHelper(getContext());
+
+        contactsDatabase = Room.databaseBuilder(MainActivity.MainContext, ContactsDatabase.class, ContactContract.DATABASE_NAME) // костыль разобраться
+                .allowMainThreadQueries().build();
         return true;
 
     }
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        SQLiteDatabase db = dbOpenHelper.getReadableDatabase();
+        contactsDatabase.getTableContactsDAO().getAllContacts();
         Cursor cursor;
         int match = uriMatcher.match(uri);
         switch (match) {
             case CONTACTS:
-                cursor = db.query(TableName.TABLE_NAME, projection, selection,
+                cursor = contactsDatabase.query(TableContacts.TABLE_NAME, projection, selection,
                         selectionArgs,null, null, sortOrder);
                 break;
             case CONTACT_ID:
-                selection = TableName.ID + "=?";
+                selection = TableContacts.ID + "=?";
                 selectionArgs = new String []{String.valueOf(ContentUris.parseId(uri))};
-                cursor = db.query(TableName.TABLE_NAME, projection, selection, selectionArgs, null,
+                cursor = db.query(TableContacts.TABLE_NAME, projection, selection, selectionArgs, null,
                         null, sortOrder);
                 break;
 
@@ -62,15 +67,15 @@ public class ContactContentProviders extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
 
-        String firstName = values.getAsString(TableName.FIRST_NAME);
+        String firstName = values.getAsString(TableContacts.FIRST_NAME);
         if (firstName == null){
             throw new IllegalArgumentException("You have to input first name");
         }
-        String lastName = values.getAsString(TableName.LAST_NAME);
+        String lastName = values.getAsString(TableContacts.LAST_NAME);
         if (lastName == null){
             throw new IllegalArgumentException("You have to input last name");
         }
-        String phoneNumber = values.getAsString(TableName.PHONE_NUMBER);
+        String phoneNumber = values.getAsString(TableContacts.PHONE_NUMBER);
         if (phoneNumber == null){
             throw new IllegalArgumentException("You have to input phone number");
         }
@@ -81,7 +86,7 @@ public class ContactContentProviders extends ContentProvider {
 
         switch (match) {
             case CONTACTS:
-               long id = db.insert(TableName.TABLE_NAME,
+               long id = db.insert(TableContacts.TABLE_NAME,
                        null, values);
                if (id==-1) {
                    Log.e("insertMethod",
@@ -110,12 +115,12 @@ public class ContactContentProviders extends ContentProvider {
 
         switch (match) {
             case CONTACTS:
-                rowsDeleted = db.delete(TableName.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = db.delete(TableContacts.TABLE_NAME, selection, selectionArgs);
                 break;
             case CONTACT_ID:
-                selection = TableName.ID + "=?";
+                selection = TableContacts.ID + "=?";
                 selectionArgs = new String []{String.valueOf(ContentUris.parseId(uri))};
-                rowsDeleted = db.delete (TableName.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = db.delete (TableContacts.TABLE_NAME, selection, selectionArgs);
                 break;
 
             default:
@@ -133,18 +138,18 @@ public class ContactContentProviders extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 
-        if(values.containsKey(TableName.FIRST_NAME)){
-        String firstName = values.getAsString(TableName.FIRST_NAME);
+        if(values.containsKey(TableContacts.FIRST_NAME)){
+        String firstName = values.getAsString(TableContacts.FIRST_NAME);
         if (firstName == null){
             throw new IllegalArgumentException("You have to input first name");
         }}
-        if(values.containsKey(TableName.LAST_NAME)){
-        String lastName = values.getAsString(TableName.LAST_NAME);
+        if(values.containsKey(TableContacts.LAST_NAME)){
+        String lastName = values.getAsString(TableContacts.LAST_NAME);
         if (lastName == null){
             throw new IllegalArgumentException("You have to input last name");
         }}
-        if(values.containsKey(TableName.PHONE_NUMBER)){
-        String phoneNumber = values.getAsString(TableName.PHONE_NUMBER);
+        if(values.containsKey(TableContacts.PHONE_NUMBER)){
+        String phoneNumber = values.getAsString(TableContacts.PHONE_NUMBER);
         if (phoneNumber == null){
             throw new IllegalArgumentException("You have to input phone number");
         }}
@@ -156,16 +161,16 @@ public class ContactContentProviders extends ContentProvider {
 
         switch (match) {
             case CONTACTS:
-                rowsUpdated = db.update(TableName.TABLE_NAME, values, selection, selectionArgs);
+                rowsUpdated = db.update(TableContacts.TABLE_NAME, values, selection, selectionArgs);
                 if (rowsUpdated != 0){
                     getContext().getContentResolver().notifyChange(uri,null);
                 }
                 return rowsUpdated;
             case CONTACT_ID:
-                selection = TableName.ID + "=?";
+                selection = TableContacts.ID + "=?";
                 selectionArgs = new String []{String.valueOf(ContentUris.parseId(uri))};
 
-                rowsUpdated = db.update(TableName.TABLE_NAME, values, selection, selectionArgs);
+                rowsUpdated = db.update(TableContacts.TABLE_NAME, values, selection, selectionArgs);
                 if (rowsUpdated != 0){
                     getContext().getContentResolver().notifyChange(uri,null);
                 }
@@ -181,9 +186,9 @@ public class ContactContentProviders extends ContentProvider {
         int match = uriMatcher.match(uri);
         switch (match) {
             case CONTACTS:
-                return TableName.CONTENT_MULTIPLE_ITEMS;
+                return TableContacts.CONTENT_MULTIPLE_ITEMS;
             case CONTACT_ID:
-                return TableName.CONTENT_SINGLE_ITEM;
+                return TableContacts.CONTENT_SINGLE_ITEM;
 
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);

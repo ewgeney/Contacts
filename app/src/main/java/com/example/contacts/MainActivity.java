@@ -8,6 +8,7 @@ import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -28,10 +29,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     ListView contactList;
     FloatingActionButton floatingActionButton;
+    public static Context MainContext; //костыль разобраться
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        MainContext = getApplicationContext(); //костыль разобраться
+
         setContentView(R.layout.activity_main);
         contactList = findViewById(R.id.contactList);
 
@@ -51,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this , addContact.class);
-                Uri currentContactUri = ContentUris.withAppendedId(TableName.CONTENT_URI, id);
+                Uri currentContactUri = ContentUris.withAppendedId(TableContacts.CONTENT_URI, id);
                 intent.setData(currentContactUri);
                 startActivity(intent);
             }

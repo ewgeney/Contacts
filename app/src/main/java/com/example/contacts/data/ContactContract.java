@@ -4,6 +4,10 @@ import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 public final class ContactContract {
     private ContactContract() {
     }
@@ -16,15 +20,31 @@ public final class ContactContract {
     public static final Uri BASE_CONTENT_URI = Uri.parse(SCHEME+AUTHORITY);
 
 
-    public static final class TableName implements BaseColumns {
-        public static final String TABLE_NAME = "contactList";
+    @Entity (tableName = "contactList" )
+    public class TableContacts {
 
-        public static final String ID = BaseColumns._ID;
-        public static final String FIRST_NAME = "firstName";
-        public static final String LAST_NAME = "lastName";
-        public static final String PHONE_NUMBER = "phoneNumber";
+        @PrimaryKey(autoGenerate = true)
+        @ColumnInfo (name = "contact_id")
+        private long ID;
 
-        public static final Uri CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_MEMBERS);
+        @ColumnInfo (name = "firstName")
+        private String FIRST_NAME;
+
+        @ColumnInfo (name = "lastName")
+        private String LAST_NAME;
+
+        @ColumnInfo (name = "phoneNumber")
+        private String PHONE_NUMBER;
+
+        public TableContacts (long ID, String FIRST_NAME, String LAST_NAME, String PHONE_NUMBER){
+            this.ID=ID;
+            this.FIRST_NAME=FIRST_NAME;
+            this.LAST_NAME=LAST_NAME;
+            this.PHONE_NUMBER=PHONE_NUMBER;
+        }
+
+
+        public final Uri CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_MEMBERS);
 
         public static final String CONTENT_MULTIPLE_ITEMS = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + AUTHORITY + "/" + PATH_MEMBERS;
         public static final String CONTENT_SINGLE_ITEM = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + AUTHORITY + "/" + PATH_MEMBERS;
